@@ -38,14 +38,14 @@ func SaveTasks(file *os.File, tasks []Task) error {
 
 func LsTasks(tasks []Task) {
 	if len(tasks) == 0 {
-		fmt.Println("No hay tareas...")
+		fmt.Println("No tasks yet...")
 		return
 	}
 
 	for _, task := range tasks {
-		complete := "[x]"
+		complete := "[ ]"
 		if task.Comlete {
-			complete = "[-]"
+			complete = "[✔]"
 		}
 		fmt.Printf("%s (%d) %s\n", complete, task.ID, task.Name)
 	}
@@ -53,8 +53,8 @@ func LsTasks(tasks []Task) {
 
 func AddTask(file *os.File, tasks []Task) {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("¿Cual es tu tarea?: ")
-	task, _ := reader.ReadString(byte(10))
+	fmt.Print("What is your task?: ")
+	task, _ := reader.ReadString(byte(10)) // byte(10) = \n
 
 	newTask := Task{
 		ID:      GenerateId(tasks),
@@ -66,19 +66,19 @@ func AddTask(file *os.File, tasks []Task) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Tarea creada (%d)\n", newTask.ID)
+	fmt.Printf("Task created (%d)\n", newTask.ID)
 }
 
 func DeleteTask(file *os.File, tasks []Task) {
 	if len(os.Args) < 3 {
-		fmt.Println("Debes ingresar un id despues del comando delete")
+		fmt.Println("You must enter an id after the delete command")
 		return
 	}
 
 	foundTask := false
 	id, err := strconv.Atoi(os.Args[2])
 	if err != nil {
-		fmt.Println("el id debe ser un numero")
+		fmt.Println("The id must be a number")
 		return
 	}
 
@@ -91,7 +91,7 @@ func DeleteTask(file *os.File, tasks []Task) {
 	}
 
 	if !foundTask {
-		fmt.Println("No se encontro la tarea...")
+		fmt.Println("Task not found...")
 		return
 	}
 
@@ -99,7 +99,40 @@ func DeleteTask(file *os.File, tasks []Task) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Tarea eliminada (%d)\n", id)
+	fmt.Printf("Deleted task (%d)\n", id)
+}
+
+func CompleteTask(file *os.File, tasks []Task) {
+	if len(os.Args) < 3 {
+		fmt.Println("You must enter an id after the complete command")
+		return
+	}
+
+	foundTask := false
+	id, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Println("The id must be a number")
+		return
+	}
+
+	for i := 0; i < len(tasks); i++ {
+		if tasks[i].ID == id {
+			tasks[i].Comlete = true
+			foundTask = true
+			break
+		}
+	}
+
+	if !foundTask {
+		fmt.Println("Task not found...")
+		return
+	}
+
+	err = SaveTasks(file, tasks)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Task completed (%d)\n", id)
 }
 
 func GenerateId(tasks []Task) int {

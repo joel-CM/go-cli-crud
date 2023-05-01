@@ -51,6 +51,8 @@ func main() {
 		pkgTasks.AddTask(file, tasks)
 	case "delete":
 		pkgTasks.DeleteTask(file, tasks)
+	case "complete":
+		pkgTasks.CompleteTask(file, tasks)
 	default:
 		HelpUse()
 	}
@@ -61,5 +63,5 @@ func fail(err error) {
 }
 
 func HelpUse() {
-	fmt.Println("comands: [ls|add|delete]")
+	fmt.Println("comands: [ls|add|delete|complete]")
 }
