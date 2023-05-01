@@ -48,11 +48,11 @@ func main() {
 	case "ls":
 		pkgTasks.LsTasks(tasks)
 	case "add":
-		pkgTasks.AddTask(file)
+		pkgTasks.AddTask(file, tasks)
 	case "delete":
-		fmt.Print("deleting...")
+		pkgTasks.DeleteTask(file, tasks)
 	default:
-		fmt.Print("options: [ls|add|delete]")
+		HelpUse()
 	}
 }
 
@@ -61,5 +61,5 @@ func fail(err error) {
 }
 
 func HelpUse() {
-	fmt.Print("Use command: [ls | add]\n")
+	fmt.Println("comands: [ls|add|delete]")
 }

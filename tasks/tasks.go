@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -15,27 +15,20 @@ type Task struct {
 	Comlete bool   `json:"complete"`
 }
 
-func (t Task) Save(file *os.File) error {
-	var tasks []Task
-
-	bytes, err := ioutil.ReadFile(file.Name())
+func SaveTasks(file *os.File, tasks []Task) error {
+	// elimino todo el contenido del archivo
+	err := file.Truncate(0)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(bytes, &tasks)
+	// convierto el []Task a bytes
+	bytes, err := json.Marshal(tasks)
 	if err != nil {
 		return err
 	}
 
-	tasks = append(tasks, t)
-
-	tasksToByte, err := json.Marshal(tasks)
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(tasksToByte)
+	_, err = file.Write(bytes)
 	if err != nil {
 		return err
 	}
@@ -54,11 +47,11 @@ func LsTasks(tasks []Task) {
 		if task.Comlete {
 			complete = "[-]"
 		}
-		fmt.Printf("%s %s\n", complete, task.Name)
+		fmt.Printf("%s (%d) %s\n", complete, task.ID, task.Name)
 	}
 }
 
-func AddTask(file *os.File) {
+func AddTask(file *os.File, tasks []Task) {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("¿Cual es tu tarea?: ")
 	task, _ := reader.ReadString(byte(10))
@@ -68,5 +61,43 @@ func AddTask(file *os.File) {
 		Name:    strings.TrimSpace(task),
 		Comlete: false,
 	}
-	newTask.Save(file)
+	tasks = append(tasks, newTask)
+	err := SaveTasks(file, tasks)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Tarea creada (%d)\n", newTask.ID)
+}
+
+func DeleteTask(file *os.File, tasks []Task) {
+	if len(os.Args) < 3 {
+		fmt.Println("Debes ingresar un id despues del comando delete")
+		return
+	}
+
+	foundTask := false
+	id, err := strconv.Atoi(os.Args[2])
+	if err != nil {
+		fmt.Println("el id debe ser un numero")
+		return
+	}
+
+	for index, task := range tasks {
+		if task.ID == id {
+			tasks = append(tasks[:index], tasks[index+1:]...)
+			foundTask = true
+			break
+		}
+	}
+
+	if !foundTask {
+		fmt.Println("No se encontro la tarea...")
+		return
+	}
+
+	err = SaveTasks(file, tasks)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Tarea eliminada (%d)\n", id)
 }
