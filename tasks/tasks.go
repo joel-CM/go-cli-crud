@@ -57,7 +57,7 @@ func AddTask(file *os.File, tasks []Task) {
 	task, _ := reader.ReadString(byte(10))
 
 	newTask := Task{
-		ID:      10,
+		ID:      GenerateId(tasks),
 		Name:    strings.TrimSpace(task),
 		Comlete: false,
 	}
@@ -100,4 +100,8 @@ func DeleteTask(file *os.File, tasks []Task) {
 		panic(err)
 	}
 	fmt.Printf("Tarea eliminada (%d)\n", id)
+}
+
+func GenerateId(tasks []Task) int {
+	return len(tasks) + 1
 }
